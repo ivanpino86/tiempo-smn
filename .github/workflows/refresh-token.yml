@@ -9,17 +9,15 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Imagen oficial de Playwright: trae Chromium y sus librerías del sistema.
+    # Debe coincidir con la versión de playwright en requirements.txt.
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.47.0-noble
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Instalar dependencias
-        run: |
-          pip install -r token-refresher/requirements.txt
-          python -m playwright install --with-deps chromium
+        run: pip install -r token-refresher/requirements.txt
 
       - name: Obtener token y enviarlo al proxy
         env:
