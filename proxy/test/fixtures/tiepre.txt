@@ -1,0 +1,8 @@
+Azul;22-octubre-2026;11:00;Cubierto con neblina;9 km;14.6;No se calcula; 86;Este  18;999.8 / 
+Pcia. Roque Saenz Peña;22-octubre-2026;11:00;Nublado;20 km;28.2;27.6; 54;Este  27;996.6 / 
+Córdoba;22-octubre-2026;11:00;Parcialmente nublado con neblina;7 km;19.9;No se calcula; 80;Sur  7;952.6 / 
+Córdoba Observatorio;22-octubre-2026;11:00;Parcialmente nublado;10 km;22.2;No se calcula; 69;Sudeste  5;960.5 / 
+Esc. Aviación Militar;22-octubre-2026;11:00;Nublado con lluvia en la hora anterior;10 km;21.4;No se calcula; 72;Calma;953 / 
+Laboulaye;22-octubre-2026;11:00;Nublado;10 km;17.9;No se calcula; 79;Calma;995.6 / 
+Pilar Obs.;22-octubre-2026;11:00;Nublado;10 km;21.1;No se calcula; 78;Noreste  9;970.6 / 
+Mercedes;22-octubre-2026;09:00;Nublado con lluvia;12 km;20;No se calcula; 92;Noreste  7;1000.2 / 
