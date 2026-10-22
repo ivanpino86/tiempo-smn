@@ -34,7 +34,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
 - [x] T2 Station table builder script + generated `proxy/src/stations.js`
 - [x] T3 Worker routes on open data (weather, forecast, coord) with caching; remove token code
 - [x] T4 Web: `api.js` sends WMO + coords; `app.js` renders 5-day forecast with rain mm
-- [ ] T5 Remove token refresher + workflow; update README
+- [x] T5 Remove token refresher + workflow; update README
 - [ ] T6 Deploy Worker + Pages from main; verify Córdoba capital end to end
 
 ## Acceptance criteria
@@ -53,6 +53,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
   - `node --check proxy/src/index.js` ok. `npx wrangler deploy --dry-run --outdir <tmp>` (from proxy/) -> bundles, 33.46 KiB, only binding ALLOWED_ORIGINS.
   - Live smoke (real SMN files, fake Cache API): /health 200 (observations_date/forecast_date 2026-10-22); /weather wmo=87345 -> Córdoba Observatorio 22.2 °C, 3 km; /forecast 5 days; /coord -> "st-87345" row; Salta and Ushuaia nearest-station fallback OK.
 - T4 done. `web/api.js` sends wmo+lat/lon (rows keep `wmo: r[4]`; entries with neither raise `no_location`, shown as "buscala de nuevo"); `app.js` renders 5 days, rain "<n> mm" (rain06h), wind text instead of sky description, rain icon when rain06h > 0.5 else partly cloudy, forecast note with the model station; h2 keeps the searched place name, station line from `w.station`. Footer/empty-state copy updated, grid 5 columns, `sw.js` cache v2. Checks: `node --check web/api.js web/app.js` ok; node vm smoke of api.js URL building and no_location error ok. Not exercised in a real browser.
+- T5 done. Removed `token-refresher/` and `.github/workflows/refresh-token.yml`; README rewritten (sections 1-3 for open data, 4-6 for 5-day forecast and rain mm). Deploy notes for T6: the KV namespace and ADMIN_SECRET/GitHub secrets (WORKER_URL, ADMIN_SECRET) are no longer used and can be deleted by the owner; `wrangler deploy` needs no bindings.
 
 ## Next step
-T5.
+T6 (deploy Worker + Pages from main; verify Córdoba end to end). Not part of this task batch.
