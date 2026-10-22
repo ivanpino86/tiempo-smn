@@ -1,7 +1,7 @@
 // Service worker: permite instalar la app y abrirla sin conexión.
 // - Archivos de la app: se sirven desde caché (y se actualizan en segundo plano).
 // - Datos del tiempo: primero red; si no hay conexión, último dato guardado.
-const VERSION = "tiempo-smn-v1";
+const VERSION = "tiempo-smn-v2";
 const SHELL = ["./", "index.html", "styles.css", "config.js", "api.js", "app.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {

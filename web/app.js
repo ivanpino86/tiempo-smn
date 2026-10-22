@@ -181,7 +181,7 @@
     out.appendChild(el("div", "skeleton"));
     setStatus("Trayendo el tiempo de " + loc.name + "…");
 
-    const [w, f] = await Promise.allSettled([SMN.getWeather(loc.id, sig), SMN.getForecast(loc.id, sig)]);
+    const [w, f] = await Promise.allSettled([SMN.getWeather(loc, sig), SMN.getForecast(loc, sig)]);
     if (sig.aborted) return;
 
     out.innerHTML = "";
@@ -197,7 +197,8 @@
     if (!e) return "Error desconocido.";
     switch (e.code) {
       case "no_proxy": return "La app todavía no tiene configurado el proxy (PROXY_URL en config.js). Sin él, el SMN no entrega el tiempo ni el pronóstico.";
-      case "token": return "El proxy no tiene un permiso vigente del SMN. Se renueva solo cada 40 minutos; probá de nuevo en un rato.";
+      case "no_location": return "Esta localidad se guardó sin ubicación. Buscala de nuevo para ver el tiempo.";
+      case "no_station": return "No hay una estación del SMN con datos cerca de esta localidad.";
       case "network": return "No hay conexión con el servidor. Revisá tu internet.";
       default: return e.message || "Error al consultar el SMN.";
     }
@@ -216,12 +217,12 @@
   const fmt = (v, suf) => (v === null || v === undefined || v === "" ? "—" : v + (suf || ""));
 
   function renderNow(w, loc) {
-    const L = (w && w.location) || {};
     const card = el("section", "now");
     const place = el("div", "place");
-    const sub = [L.department || loc.department, L.province || loc.province].filter(Boolean).join(", ");
-    const station = loc.station ? " · Estación " + loc.station + (L.distance != null ? " (" + L.distance + " km)" : "") : "";
-    place.append(el("h2", "", L.name || loc.name), el("p", "", sub + station));
+    const sub = [loc.department, loc.province].filter(Boolean).join(", ");
+    const st = w.station || {};
+    const station = st.name ? "Estación " + st.name + (st.distance_km != null ? " (" + st.distance_km + " km)" : "") : "";
+    place.append(el("h2", "", loc.name), el("p", "", [sub, station].filter(Boolean).join(" · ")));
 
     const desc = (w.weather && w.weather.description) || "";
     const ico = weatherIcon(desc, isNight(w.date));
@@ -251,7 +252,11 @@
 
   function renderForecast(f) {
     const box = el("section", "fc");
-    box.appendChild(el("h3", "", "Pronóstico 7 días"));
+    box.appendChild(el("h3", "", "Pronóstico 5 días"));
+    if (f && f.station && f.station.name) {
+      const d = f.station.distance_km;
+      box.appendChild(el("p", "fc-note", "Modelo numérico del SMN para la estación " + f.station.name + (d != null ? " (" + d + " km)" : "") + "."));
+    }
     const days = el("div", "days");
     const todayIso = new Date().toLocaleDateString("sv-SE"); // AAAA-MM-DD local
     ((f && f.forecast) || []).forEach((d) => {
@@ -263,12 +268,12 @@
       c.appendChild(mm);
       [["early_morning", "Madrugada", true], ["morning", "Mañana", false], ["afternoon", "Tarde", false], ["night", "Noche", true]].forEach(([k, lbl, night]) => {
         const p = d[k]; if (!p) return;
-        const desc = (p.weather && p.weather.description) || "";
+        // El pronóstico abierto no trae descripción del cielo: muestro el viento y elijo el ícono por la lluvia
+        const desc = p.wind && p.wind.speed != null ? "Viento " + p.wind.speed + " km/h" : "—";
         const sl = el("div", "slot");
-        sl.append(weatherIcon(desc, night), el("div", "lbl", lbl), el("div", "", desc || "—"));
+        sl.append(weatherIcon("", night, p.rain06h > 0.5 ? "rain" : "partly"), el("div", "lbl", lbl), el("div", "", desc));
         const line = el("div", "", p.temperature != null ? p.temperature + "° " : "");
-        const rp = p.rain_prob_range;
-        if (rp && rp.length === 2 && rp[1] > 0) line.appendChild(el("span", "rain", "lluvia " + rp[0] + "–" + rp[1] + "%"));
+        if (p.rain06h > 0) line.appendChild(el("span", "rain", p.rain06h + " mm"));
         sl.appendChild(line);
         c.appendChild(sl);
       });
@@ -286,10 +291,11 @@
   }
 
   // Ícono simple a partir de la descripción del SMN
-  function weatherIcon(desc, night) {
+  function weatherIcon(desc, night, forcedKind) {
     const d = fold(desc);
     let kind = "sun";
-    if (/tormenta/.test(d)) kind = "storm";
+    if (forcedKind) kind = forcedKind;
+    else if (/tormenta/.test(d)) kind = "storm";
     else if (/nieve|nevada/.test(d)) kind = "snow";
     else if (/lluvi|llovizn|chaparr|precip/.test(d)) kind = "rain";
     else if (/niebla|neblina|bruma/.test(d)) kind = "fog";

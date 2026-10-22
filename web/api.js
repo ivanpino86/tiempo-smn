@@ -17,22 +17,23 @@
       if (e.name === "AbortError") throw e;
       throw new ApiError("network", "Sin conexión con el servidor.");
     }
-    if (res.status === 503) {
+    if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new ApiError(body.error === "token" ? "token" : "unavailable", body.message || "Servicio no disponible.");
+      if (res.status === 502 || res.status === 503) throw new ApiError("unavailable", body.message || "Servicio no disponible.");
+      if (res.status === 404 && body.error === "station") throw new ApiError("no_station", body.message || "No hay una estación para esa ubicación.");
+      throw new ApiError("http", "El servidor respondió " + res.status + ".");
     }
-    if (!res.ok) throw new ApiError("http", "El servidor respondió " + res.status + ".");
     return res.json();
   }
 
   // Fila de búsqueda del SMN: [id, nombre, departamento, provincia, idEstación, idPronóstico, lon, lat, distanciaKm, nombreEstación]
   function normalizeRow(r) {
     if (Array.isArray(r)) {
-      return { id: r[0], name: r[1], department: r[2], province: r[3], lon: r[6], lat: r[7], distance: r[8], station: r[9] };
+      return { id: r[0], name: r[1], department: r[2], province: r[3], wmo: r[4], lon: r[6], lat: r[7], distance: r[8], station: r[9] };
     }
     if (r && typeof r === "object") {
       return {
-        id: r.id, name: r.name, department: r.department, province: r.province,
+        id: r.id, name: r.name, department: r.department, province: r.province, wmo: r.wmo || null,
         lon: r.coord && r.coord.lon, lat: r.coord && r.coord.lat, distance: r.distance, station: r.station || "",
       };
     }
@@ -61,14 +62,26 @@
     return (Array.isArray(rows) ? rows : []).map(normalizeRow).filter(Boolean);
   }
 
-  async function getWeather(id, signal) {
-    requireProxy();
-    return getJson(PROXY + "/weather/" + encodeURIComponent(id), signal);
+  // Query con la estación (WMO) y las coordenadas de la localidad; el proxy elige la estación.
+  // Las localidades guardadas por versiones viejas de la app pueden no tener ninguno de los dos.
+  function locationQuery(loc) {
+    const p = [];
+    const wmo = loc && Number(loc.wmo);
+    if (wmo > 0) p.push("wmo=" + wmo);
+    const lat = loc && Number(loc.lat), lon = loc && Number(loc.lon);
+    if (loc && loc.lat != null && loc.lon != null && isFinite(lat) && isFinite(lon)) p.push("lat=" + lat, "lon=" + lon);
+    if (!p.length) throw new ApiError("no_location", "Esta localidad guardada no tiene ubicación.");
+    return p.join("&");
   }
 
-  async function getForecast(id, signal) {
+  async function getWeather(loc, signal) {
     requireProxy();
-    return getJson(PROXY + "/forecast/" + encodeURIComponent(id), signal);
+    return getJson(PROXY + "/weather?" + locationQuery(loc), signal);
+  }
+
+  async function getForecast(loc, signal) {
+    requireProxy();
+    return getJson(PROXY + "/forecast?" + locationQuery(loc), signal);
   }
 
   async function locationByCoords(lat, lon, signal) {

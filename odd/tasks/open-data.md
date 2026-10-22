@@ -33,7 +33,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
 - [x] T1 Parsers (estaciones, tiepre, pron5d) with fixture tests
 - [x] T2 Station table builder script + generated `proxy/src/stations.js`
 - [x] T3 Worker routes on open data (weather, forecast, coord) with caching; remove token code
-- [ ] T4 Web: `api.js` sends WMO + coords; `app.js` renders 5-day forecast with rain mm
+- [x] T4 Web: `api.js` sends WMO + coords; `app.js` renders 5-day forecast with rain mm
 - [ ] T5 Remove token refresher + workflow; update README
 - [ ] T6 Deploy Worker + Pages from main; verify Córdoba capital end to end
 
@@ -52,6 +52,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
   - `node --test "proxy/test/*.test.js"` -> 28 pass / 0 fail (parsers 15, pick 6, worker handler with stubbed fetch/cache 7).
   - `node --check proxy/src/index.js` ok. `npx wrangler deploy --dry-run --outdir <tmp>` (from proxy/) -> bundles, 33.46 KiB, only binding ALLOWED_ORIGINS.
   - Live smoke (real SMN files, fake Cache API): /health 200 (observations_date/forecast_date 2026-10-22); /weather wmo=87345 -> Córdoba Observatorio 22.2 °C, 3 km; /forecast 5 days; /coord -> "st-87345" row; Salta and Ushuaia nearest-station fallback OK.
+- T4 done. `web/api.js` sends wmo+lat/lon (rows keep `wmo: r[4]`; entries with neither raise `no_location`, shown as "buscala de nuevo"); `app.js` renders 5 days, rain "<n> mm" (rain06h), wind text instead of sky description, rain icon when rain06h > 0.5 else partly cloudy, forecast note with the model station; h2 keeps the searched place name, station line from `w.station`. Footer/empty-state copy updated, grid 5 columns, `sw.js` cache v2. Checks: `node --check web/api.js web/app.js` ok; node vm smoke of api.js URL building and no_location error ok. Not exercised in a real browser.
 
 ## Next step
-T4.
+T5.
