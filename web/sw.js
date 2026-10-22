@@ -1,17 +1,19 @@
 // Service worker: permite instalar la app y abrirla sin conexión.
 // - Archivos de la app: se sirven desde caché (y se actualizan en segundo plano).
 // - Datos del tiempo: primero red; si no hay conexión, último dato guardado.
-const VERSION = "tiempo-smn-v2";
+const VERSION = "tiempo-smn-v3";
 const SHELL = ["./", "index.html", "styles.css", "config.js", "api.js", "app.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: "reload" skips the browser HTTP cache so a new version never stores stale files
+  const fresh = SHELL.map((u) => new Request(u, { cache: "reload" }));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(fresh)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== VERSION + "-data").map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -25,7 +27,8 @@ self.addEventListener("fetch", (e) => {
   if (url.origin === self.location.origin) {
     e.respondWith(
       caches.match(req).then((hit) => {
-        const net = fetch(req).then((res) => {
+        // no-cache revalidates with the server instead of reusing the browser HTTP cache
+        const net = fetch(req, { cache: "no-cache" }).then((res) => {
           if (res.ok) caches.open(VERSION).then((c) => c.put(req, res.clone()));
           return res;
         }).catch(() => hit);
