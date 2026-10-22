@@ -2,17 +2,7 @@ name = "smn-proxy"
 main = "src/index.js"
 compatibility_date = "2026-01-01"
 
-# Base KV donde se guarda el token del SMN.
-# Crear con:  npx wrangler kv namespace create TOKENS
-# y pegar acá el id que devuelve.
-[[kv_namespaces]]
-binding = "TOKENS"
-id = "7754bed93426475ebed757aab4ecb4ce"
-
 [vars]
 # Orígenes permitidos separados por coma. "*" = cualquiera.
 # Cuando publiques la web, poné tu dominio, ej: "https://ivanpino.github.io"
 ALLOWED_ORIGINS = "https://ivanpino86.github.io,http://localhost:8000"
-
-# ADMIN_SECRET NO va acá: se carga como secreto con
-#   npx wrangler secret put ADMIN_SECRET

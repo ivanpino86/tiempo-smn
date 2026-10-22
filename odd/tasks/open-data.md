@@ -32,7 +32,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
 ## Tasks
 - [x] T1 Parsers (estaciones, tiepre, pron5d) with fixture tests
 - [x] T2 Station table builder script + generated `proxy/src/stations.js`
-- [ ] T3 Worker routes on open data (weather, forecast, coord) with caching; remove token code
+- [x] T3 Worker routes on open data (weather, forecast, coord) with caching; remove token code
 - [ ] T4 Web: `api.js` sends WMO + coords; `app.js` renders 5-day forecast with rain mm
 - [ ] T5 Remove token refresher + workflow; update README
 - [ ] T6 Deploy Worker + Pages from main; verify Córdoba capital end to end
@@ -47,6 +47,11 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
   - RED: `node --test "proxy/test/*.test.js"` before `opendata.js` existed -> ERR_MODULE_NOT_FOUND, 0 pass / 1 fail.
   - GREEN: same command after implementing -> 15 pass / 0 fail.
 - T2 done: `node proxy/scripts/build-stations.mjs` -> "wrote 118 stations (obs 118/120, fc 111/118)". Stations without forecast: 5 Antarctic bases + Campo de Mayo Aero. Source names with no station entry (no coordinates, not mappable): tiepre "Mount Pleasant Airport (Islas Malvinas)", "Cipolletti"; pron5d CIPOLLETTI, CORONEL_PRINGLES_AERO, EL_TREBOL, RIO_COLORADO, SANTA_TERESITA_AERO, SAN_CARLOS_(MZA), SAN_MIGUEL. Overrides needed for truncated/renamed names (Roque Saenz Peña, Esc. Aviación Militar, Mercedes, Aeroparque, Villa María del Río Seco, Jujuy UN, Santa Rosa del Conlara, Sauce Viejo = "Santa Fe", Base Carlini). Cordoba Aero = tiepre "Córdoba".
+- T3 done. Worker rewritten on open data (routes /weather /forecast /coord /search /health), KV/token/ADMIN_SECRET removed from index.js and wrangler.toml. Observations older than 6 h (e.g. Campo de Mayo, last obs the previous night) are skipped by the nearest-station fallback unless nothing fresher exists. Negative cache (5 min) for a missing today file; falls back to yesterday.
+  - RED: `node --test proxy/test/pick.test.js` before `pick.js` -> ERR_MODULE_NOT_FOUND (fail 1). GREEN after: pick tests pass (6).
+  - `node --test "proxy/test/*.test.js"` -> 28 pass / 0 fail (parsers 15, pick 6, worker handler with stubbed fetch/cache 7).
+  - `node --check proxy/src/index.js` ok. `npx wrangler deploy --dry-run --outdir <tmp>` (from proxy/) -> bundles, 33.46 KiB, only binding ALLOWED_ORIGINS.
+  - Live smoke (real SMN files, fake Cache API): /health 200 (observations_date/forecast_date 2026-10-22); /weather wmo=87345 -> Córdoba Observatorio 22.2 °C, 3 km; /forecast 5 days; /coord -> "st-87345" row; Salta and Ushuaia nearest-station fallback OK.
 
 ## Next step
-T3.
+T4.
