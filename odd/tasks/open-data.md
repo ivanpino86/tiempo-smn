@@ -63,4 +63,4 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
   - RDD for a183eb9/0882387: assessed medium (2 and 8 lines), deferred to slice; not reviewed.
 
 ## Next step
-Feature complete. Optional follow-ups: the 14 advisory review findings; delete unused Cloudflare KV `TOKENS`, Worker secret `ADMIN_SECRET`, GitHub secrets `WORKER_URL`/`ADMIN_SECRET`.
+Feature complete. Unused resources deleted on 2026-10-22 (Cloudflare KV `TOKENS`, Worker secret `ADMIN_SECRET`, GitHub secrets `WORKER_URL`/`ADMIN_SECRET`); Worker /health and /weather still 200 afterwards. Optional follow-up: the 14 advisory review findings.
