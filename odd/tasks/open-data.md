@@ -31,7 +31,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
 
 ## Tasks
 - [x] T1 Parsers (estaciones, tiepre, pron5d) with fixture tests
-- [ ] T2 Station table builder script + generated `proxy/src/stations.js`
+- [x] T2 Station table builder script + generated `proxy/src/stations.js`
 - [ ] T3 Worker routes on open data (weather, forecast, coord) with caching; remove token code
 - [ ] T4 Web: `api.js` sends WMO + coords; `app.js` renders 5-day forecast with rain mm
 - [ ] T5 Remove token refresher + workflow; update README
@@ -46,6 +46,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
 - T1 done. Deviation: the station list lives at `observaciones/estaciones_smn.txt` (the `estaciones/` path returns "El archivo no existe"). Lines do not wrap in practice; names are truncated to 30 chars (needs overrides in T2). Forecast rain has garbage sentinels on the last step (850.0, 2261630.0): values >= 300 mm become `null`. Times are local (peak temp at 15Hs).
   - RED: `node --test "proxy/test/*.test.js"` before `opendata.js` existed -> ERR_MODULE_NOT_FOUND, 0 pass / 1 fail.
   - GREEN: same command after implementing -> 15 pass / 0 fail.
+- T2 done: `node proxy/scripts/build-stations.mjs` -> "wrote 118 stations (obs 118/120, fc 111/118)". Stations without forecast: 5 Antarctic bases + Campo de Mayo Aero. Source names with no station entry (no coordinates, not mappable): tiepre "Mount Pleasant Airport (Islas Malvinas)", "Cipolletti"; pron5d CIPOLLETTI, CORONEL_PRINGLES_AERO, EL_TREBOL, RIO_COLORADO, SANTA_TERESITA_AERO, SAN_CARLOS_(MZA), SAN_MIGUEL. Overrides needed for truncated/renamed names (Roque Saenz Peña, Esc. Aviación Militar, Mercedes, Aeroparque, Villa María del Río Seco, Jujuy UN, Santa Rosa del Conlara, Sauce Viejo = "Santa Fe", Base Carlini). Cordoba Aero = tiepre "Córdoba".
 
 ## Next step
-T2.
+T3.
