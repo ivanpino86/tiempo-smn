@@ -35,7 +35,7 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
 - [x] T3 Worker routes on open data (weather, forecast, coord) with caching; remove token code
 - [x] T4 Web: `api.js` sends WMO + coords; `app.js` renders 5-day forecast with rain mm
 - [x] T5 Remove token refresher + workflow; update README
-- [ ] T6 Deploy Worker + Pages from main; verify Córdoba capital end to end
+- [x] T6 Deploy Worker + Pages from main; verify Córdoba capital end to end
 
 ## Acceptance criteria
 - `/weather` and `/forecast` for Córdoba capital (WMO 87345, lat -31.3988, lon -64.2075) return station data with HTTP 200.
@@ -55,5 +55,12 @@ The SMN API (`ws1.smn.gob.ar`) needs a JWT that is only obtainable from `www.smn
 - T4 done. `web/api.js` sends wmo+lat/lon (rows keep `wmo: r[4]`; entries with neither raise `no_location`, shown as "buscala de nuevo"); `app.js` renders 5 days, rain "<n> mm" (rain06h), wind text instead of sky description, rain icon when rain06h > 0.5 else partly cloudy, forecast note with the model station; h2 keeps the searched place name, station line from `w.station`. Footer/empty-state copy updated, grid 5 columns, `sw.js` cache v2. Checks: `node --check web/api.js web/app.js` ok; node vm smoke of api.js URL building and no_location error ok. Not exercised in a real browser.
 - T5 done. Removed `token-refresher/` and `.github/workflows/refresh-token.yml`; README rewritten (sections 1-3 for open data, 4-6 for 5-day forecast and rain mm). Deploy notes for T6: the KV namespace and ADMIN_SECRET/GitHub secrets (WORKER_URL, ADMIN_SECRET) are no longer used and can be deleted by the owner; `wrangler deploy` needs no bindings.
 
+- Review (RDD, T1–T5 base-diff vs main, risk high, consent granted): lineage review-20ef52ce63b1d5cd approved by 4 lenses, acknowledged (authority burned). 14 non-blocking findings (readability 7, reliability 3, resilience 4) left as follow-up work.
+- T6 done. `feat/open-data` fast-forwarded into `main` (90eae34) and pushed; Pages deploy success. `npx wrangler deploy` -> version df0be03f, only binding ALLOWED_ORIGINS.
+  - Live Worker: /health 200 (118 stations, dates 2026-10-22); /weather wmo=87345 -> Córdoba Observatorio 23.8 °C, 3 km; /forecast -> 5 days; /coord -> st-87345 row with null at index 5; CORS returns https://ivanpino86.github.io.
+  - Live web (browser pane): search "cordoba" -> Córdoba, Capital -> current weather + 5-day forecast rendered.
+  - Found and fixed in T6: page overflowed horizontally (`.wrap` grid column grew to the 5-day row) -> a183eb9; service worker revalidated through the browser HTTP cache and kept stale files, and its activate step deleted the data cache -> 0882387 (cache v3, `cache: "reload"`/`"no-cache"`). Verified: 619 px and 375 px viewports, page scrollWidth equals viewport.
+  - RDD for a183eb9/0882387: assessed medium (2 and 8 lines), deferred to slice; not reviewed.
+
 ## Next step
-T6 (deploy Worker + Pages from main; verify Córdoba end to end). Not part of this task batch.
+Feature complete. Optional follow-ups: the 14 advisory review findings; delete unused Cloudflare KV `TOKENS`, Worker secret `ADMIN_SECRET`, GitHub secrets `WORKER_URL`/`ADMIN_SECRET`.
