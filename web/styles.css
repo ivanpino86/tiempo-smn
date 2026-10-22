@@ -32,7 +32,7 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.wrap { max-width: 880px; margin: 0 auto; display: grid; gap: 18px; }
+.wrap { max-width: 880px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 a { color: var(--sky); }
 button { font: inherit; cursor: pointer; }
 :focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
